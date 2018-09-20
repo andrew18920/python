@@ -24,7 +24,7 @@ def funnel(word1, word2):
         return True
     return False
 
-words = set(open('../enable1.txt','r').read().split('\n'))
+words = set(open('enable1.txt','r').read().split('\n'))
 
 def funnelList(word):
     results = []
