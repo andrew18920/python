@@ -1,3 +1,5 @@
+# fetches all wallpaper size files from windows spotlight folder and copies them into a wallpaper folder as jpg
+
 import os
 from PIL import Image
 from shutil import copyfile
@@ -20,5 +22,5 @@ for fileName in destinationFileNames:
 	if len(destinationFileNames)<=5:
 		break
 	if fileName not in sourceFileNames:
-		os.remove(destination + "\\" + fileName +".png")
+		os.remove(destination + "\\" + fileName +".jpg")
 		destinationFileNames.remove(fileName)
