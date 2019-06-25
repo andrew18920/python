@@ -19,7 +19,7 @@ for file in sourceFiles:
 
 
 for fileName in destinationFileNames:
-	if len(destinationFileNames)<=5:
+	if len(destinationFileNames)<=8:
 		break
 	if fileName not in sourceFileNames:
 		os.remove(destination + "\\" + fileName +".jpg")
