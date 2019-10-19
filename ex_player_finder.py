@@ -25,7 +25,7 @@ def is_time_format(input):
 
 def used_to_play_for(team, player):
     if player=='':
-        return False
+        return ('',False)
     html = requests.get('https://www.transfermarkt.co.uk/player-name/transfers/spieler/{}'.format(player if player.isnumeric() else find_player(player)), headers=head)
     soup = BeautifulSoup(html.text, features='html.parser')
     try:
@@ -62,6 +62,31 @@ def any_ex_players(team, match):
             players.append(playersTF[x][0])
     return players
 
+def fetch_current_matches1():
+    html = requests.get('https://www.transfermarkt.co.uk/ticker/index/live', headers=head)
+    soup = BeautifulSoup(html.text, features='html.parser')
+    home_tds = soup.find_all('td', class_='verein-heim')
+    away_tds = soup.find_all('td', class_='verein-gast')
+    all_matches = [(tr['id'], tr.find_all('span', class_='matchresult')[0].text) for tr in soup.find_all('tr', class_='begegnungZeile')]
+    matches = []
+    home = [td.find_all('a', class_='vereinprofil_tooltip')[0].text for td in home_tds]
+    away = [td.find_all('a', class_='vereinprofil_tooltip')[1].text for td in away_tds]
+    match_index = 0
+    for match in all_matches:
+        if is_time_format(match[1]):
+            kick_off = datetime.strptime(match[1], '%I:%M %p')
+            if datetime.now().time() >= (kick_off-timedelta(hours=1)).time():
+                matches.append(match[0])
+                del home[match_index]
+                del away[match_index]
+                match_index-=1
+        else:
+            matches.append(match[0])
+        match_index+=1
+
+    return list(zip(matches,(zip(home, away))))
+
+
 def fetch_current_matches():
     html = requests.get('https://www.transfermarkt.co.uk/ticker/index/live', headers=head)
     soup = BeautifulSoup(html.text, features='html.parser')
@@ -69,17 +94,20 @@ def fetch_current_matches():
     away_tds = soup.find_all('td', class_='verein-gast')
     all_matches = [(tr['id'], tr.find_all('span', class_='matchresult')[0].text) for tr in soup.find_all('tr', class_='begegnungZeile')]
     matches = []
+    home = [td.find_all('a', class_='vereinprofil_tooltip')[0].text for td in home_tds]
+    away = [td.find_all('a', class_='vereinprofil_tooltip')[1].text for td in away_tds]
+    match_index = 0
     for match in all_matches:
         if is_time_format(match[1]):
             kick_off = datetime.strptime(match[1], '%I:%M %p')
             if datetime.now().time() >= (kick_off-timedelta(hours=1)).time():
-                matches.append(match[0])
+                matches.append((match[0],(home[match_index], away[match_index])))
         else:
-            matches.append(match[0])
-    home = [td.find_all('a', class_='vereinprofil_tooltip')[0].text for td in home_tds]
-    away = [td.find_all('a', class_='vereinprofil_tooltip')[1].text for td in away_tds]
-    
-    return list(zip(matches,(zip(home, away))))
+            matches.append((match[0],(home[match_index], away[match_index])))
+        match_index+=1
+
+    print(matches)
+    return matches
 
 def print_current_matches(matches):
     i=0
